@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FitLog">
+<link rel="manifest" href="manifest.json">
+<title>FitLog 健身記錄</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0a;
+  --surface: #141414;
+  --surface2: #1e1e1e;
+  --surface3: #282828;
+  --accent: #e8ff47;
+  --accent2: #ff6b35;
+  --text: #f0f0f0;
+  --text2: #888;
+  --text3: #555;
+  --border: #2a2a2a;
+  --radius: 16px;
+  --radius-sm: 8px;
+  --danger: #ff4444;
+  --success: #44ff88;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: 'Noto Sans TC', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+}
+
+/* ── HEADER ── */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  flex-shrink: 0;
+}
+.app-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  letter-spacing: 3px;
+  color: var(--accent);
+}
+.header-actions { display: flex; gap: 8px; }
+.icon-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 18px; transition: all .2s;
+}
+.icon-btn:active { transform: scale(.92); background: var(--surface3); }
+
+/* ── NAV ── */
+.bottom-nav {
+  display: flex;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+  flex-shrink: 0;
+}
+.nav-btn {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 4px; padding: 10px 0 12px;
+  background: none; border: none; cursor: pointer;
+  color: var(--text3); font-size: 10px;
+  font-family: 'Noto Sans TC', sans-serif;
+  transition: color .2s; position: relative;
+}
+.nav-btn .nav-icon { font-size: 22px; }
+.nav-btn.active { color: var(--accent); }
+.nav-btn.active::before {
+  content: '';
+  position: absolute; top: 0; left: 20%; right: 20%;
+  height: 2px; background: var(--accent); border-radius: 0 0 4px 4px;
+}
+
+/* ── VIEWS ── */
+.view { display: none; flex: 1; overflow-y: auto; overscroll-behavior: contain; }
+.view.active { display: block; }
+
+/* ── EQUIPMENT LIST ── */
+.view-content { padding: 16px; }
+.section-label {
+  font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--text2); margin-bottom: 12px; font-weight: 500;
+}
+.add-equipment-btn {
+  width: 100%; padding: 16px;
+  background: var(--surface);
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  color: var(--text2);
+  font-size: 14px; font-family: 'Noto Sans TC', sans-serif;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all .2s; margin-bottom: 16px;
+}
+.add-equipment-btn:active { border-color: var(--accent); color: var(--accent); }
+
+.equipment-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform .15s, border-color .15s;
+  display: flex; align-items: stretch;
+}
+.equipment-card:active { transform: scale(.98); }
+.equipment-card:hover { border-color: var(--surface3); }
+.equip-img {
+  width: 90px; min-height: 90px;
+  object-fit: cover; flex-shrink: 0;
+  background: var(--surface2);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text3); font-size: 32px;
+}
+.equip-img img { width: 90px; height: 100%; object-fit: cover; }
+.equip-info { padding: 14px 16px; flex: 1; min-width: 0; }
+.equip-name { font-weight: 700; font-size: 16px; margin-bottom: 4px; }
+.equip-note { font-size: 12px; color: var(--text2); margin-bottom: 8px; line-height: 1.4; }
+.equip-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+.tag {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px; padding: 3px 8px;
+  font-size: 11px; color: var(--text2);
+}
+.tag.accent { border-color: var(--accent); color: var(--accent); background: rgba(232,255,71,.08); }
+.record-count {
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; padding: 0 16px;
+  border-left: 1px solid var(--border); min-width: 56px;
+}
+.record-count .num { font-family: 'Bebas Neue'; font-size: 28px; color: var(--accent); line-height: 1; }
+.record-count .lbl { font-size: 10px; color: var(--text3); }
+
+/* ── MODAL / SHEET ── */
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.7); backdrop-filter: blur(4px);
+  z-index: 100; display: none; align-items: flex-end;
+}
+.overlay.open { display: flex; }
+.sheet {
+  width: 100%; max-height: 92dvh;
+  background: var(--surface);
+  border-radius: 24px 24px 0 0;
+  overflow-y: auto; overscroll-behavior: contain;
+  animation: slideUp .25s ease;
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.sheet-handle {
+  width: 40px; height: 4px; background: var(--border);
+  border-radius: 2px; margin: 12px auto 0;
+}
+.sheet-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; border-bottom: 1px solid var(--border);
+}
+.sheet-title { font-weight: 700; font-size: 18px; }
+.close-btn {
+  background: var(--surface2); border: none; color: var(--text2);
+  width: 32px; height: 32px; border-radius: 8px;
+  font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.sheet-body { padding: 20px; }
+
+/* ── FORM ── */
+.form-group { margin-bottom: 16px; }
+.form-label { font-size: 12px; color: var(--text2); margin-bottom: 6px; display: block; letter-spacing: .5px; }
+.form-input {
+  width: 100%; padding: 12px 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text); font-size: 15px;
+  font-family: 'Noto Sans TC', sans-serif;
+  outline: none; transition: border-color .2s;
+  appearance: none;
+}
+.form-input:focus { border-color: var(--accent); }
+.form-input::placeholder { color: var(--text3); }
+textarea.form-input { resize: none; min-height: 80px; }
+select.form-input { cursor: pointer; }
+
+.row-inputs { display: flex; gap: 10px; }
+.row-inputs .form-group { flex: 1; }
+
+/* photo upload */
+.photo-upload-area {
+  width: 100%; aspect-ratio: 16/9;
+  background: var(--surface2);
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  cursor: pointer; transition: border-color .2s;
+  overflow: hidden; position: relative;
+}
+.photo-upload-area:hover, .photo-upload-area.has-photo { border-color: var(--accent); border-style: solid; }
+.photo-upload-area img { width: 100%; height: 100%; object-fit: cover; }
+.photo-upload-area .upload-hint {
+  position: absolute; color: var(--text2);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  font-size: 13px;
+}
+.photo-upload-area.has-photo .upload-hint { display: none; }
+.photo-upload-area .upload-icon { font-size: 36px; }
+.photo-actions { display: flex; gap: 8px; margin-top: 8px; }
+.photo-action-btn {
+  flex: 1; padding: 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text2); font-size: 13px;
+  font-family: 'Noto Sans TC', sans-serif;
+  cursor: pointer; text-align: center;
+  transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.photo-action-btn:active { border-color: var(--accent); color: var(--accent); }
+
+/* type toggle */
+.type-toggle { display: flex; gap: 8px; flex-wrap: wrap; }
+.type-btn {
+  padding: 8px 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 20px; color: var(--text2);
+  font-size: 13px; font-family: 'Noto Sans TC', sans-serif;
+  cursor: pointer; transition: all .2s;
+}
+.type-btn.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 700; }
+
+/* ── SUBMIT BTN ── */
+.submit-btn {
+  width: 100%; padding: 16px;
+  background: var(--accent); color: #000;
+  border: none; border-radius: var(--radius);
+  font-size: 16px; font-weight: 700;
+  font-family: 'Noto Sans TC', sans-serif;
+  cursor: pointer; transition: transform .15s, opacity .2s;
+  margin-top: 8px; letter-spacing: 1px;
+}
+.submit-btn:active { transform: scale(.97); opacity: .9; }
+.submit-btn.danger { background: var(--danger); color: #fff; }
+
+/* ── DETAIL VIEW ── */
+#view-detail { display: none; }
+#view-detail.active { display: flex; flex-direction: column; }
+.detail-header {
+  flex-shrink: 0;
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 20px; border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+.back-btn {
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text); width: 36px; height: 36px;
+  border-radius: 10px; font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+.detail-title { font-weight: 700; font-size: 18px; flex: 1; }
+.detail-actions { display: flex; gap: 8px; }
+
+.detail-scroll { flex: 1; overflow-y: auto; }
+.equip-hero {
+  width: 100%; aspect-ratio: 16/9;
+  background: var(--surface2);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text3); font-size: 64px; overflow: hidden;
+}
+.equip-hero img { width: 100%; height: 100%; object-fit: cover; }
+.detail-body { padding: 20px; }
+.detail-note {
+  background: var(--surface2); border-radius: var(--radius-sm);
+  padding: 12px 14px; font-size: 14px; color: var(--text2);
+  margin-bottom: 20px; line-height: 1.6;
+}
+.records-section-title {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.add-record-btn {
+  background: var(--accent); color: #000;
+  border: none; border-radius: 20px;
+  padding: 6px 14px; font-size: 13px; font-weight: 700;
+  font-family: 'Noto Sans TC', sans-serif; cursor: pointer;
+  display: flex; align-items: center; gap: 4px;
+}
+.record-item {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px; margin-bottom: 10px;
+  position: relative;
+}
+.record-item .rec-date { font-size: 11px; color: var(--text3); margin-bottom: 8px; }
+.record-stats { display: flex; gap: 12px; flex-wrap: wrap; }
+.stat-chip {
+  display: flex; flex-direction: column; align-items: center;
+  background: var(--surface3);
+  border-radius: 8px; padding: 8px 14px; min-width: 70px;
+}
+.stat-chip .val {
+  font-family: 'Bebas Neue'; font-size: 22px; color: var(--accent); line-height: 1;
+}
+.stat-chip .unit { font-size: 10px; color: var(--text3); margin-top: 2px; }
+.del-record-btn {
+  position: absolute; top: 10px; right: 10px;
+  background: none; border: none; color: var(--text3);
+  font-size: 16px; cursor: pointer; padding: 4px;
+  transition: color .2s;
+}
+.del-record-btn:active { color: var(--danger); }
+
+/* ── HISTORY VIEW ── */
+.history-day { margin-bottom: 20px; }
+.history-date-label {
+  font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--text2); padding: 8px 0; margin-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.history-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 12px;
+}
+.history-equip-icon {
+  width: 44px; height: 44px; border-radius: 8px;
+  object-fit: cover; background: var(--surface2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; color: var(--text3); flex-shrink: 0; overflow: hidden;
+}
+.history-equip-icon img { width: 100%; height: 100%; object-fit: cover; }
+.history-info { flex: 1; }
+.history-name { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+.history-stats { font-size: 12px; color: var(--text2); }
+.history-time { font-size: 11px; color: var(--text3); }
+
+/* ── STATS VIEW ── */
+.stats-hero {
+  background: linear-gradient(135deg, rgba(232,255,71,.15), rgba(255,107,53,.08));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px; margin-bottom: 16px;
+  display: flex; justify-content: space-around;
+}
+.stat-block { text-align: center; }
+.stat-block .big { font-family: 'Bebas Neue'; font-size: 40px; color: var(--accent); line-height: 1; }
+.stat-block .lbl { font-size: 11px; color: var(--text2); margin-top: 4px; }
+
+.chart-bar-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 8px;
+}
+.chart-bar-label { font-size: 12px; color: var(--text2); width: 80px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chart-bar-track { flex: 1; height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+.chart-bar-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width .5s ease; }
+.chart-bar-val { font-size: 12px; color: var(--text2); width: 30px; text-align: right; }
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  text-align: center; padding: 60px 20px;
+  color: var(--text3);
+}
+.empty-icon { font-size: 56px; margin-bottom: 16px; }
+.empty-title { font-size: 16px; font-weight: 600; color: var(--text2); margin-bottom: 8px; }
+.empty-desc { font-size: 13px; line-height: 1.6; }
+
+/* ── INSTALL BANNER ── */
+.install-banner {
+  display: none;
+  align-items: center; gap: 10px;
+  background: linear-gradient(90deg, rgba(232,255,71,.12), rgba(255,107,53,.08));
+  border: 1px solid rgba(232,255,71,.2);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px; margin: 0 16px 12px;
+}
+.install-banner.show { display: flex; }
+.install-banner-text { flex: 1; font-size: 12px; color: var(--text2); }
+.install-btn {
+  background: var(--accent); color: #000;
+  border: none; border-radius: 6px;
+  padding: 6px 12px; font-size: 12px; font-weight: 700;
+  cursor: pointer; white-space: nowrap;
+  font-family: 'Noto Sans TC', sans-serif;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ── BADGE ── */
+.badge {
+  background: var(--accent2); color: #fff;
+  border-radius: 10px; font-size: 10px;
+  padding: 2px 6px; font-weight: 700;
+  min-width: 18px; text-align: center;
+}
+
+.divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+input[type="file"] { display: none; }
+input[type="number"] { -moz-appearance: textfield; }
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+.difficulty-row { display: flex; gap: 8px; }
+.diff-btn {
+  flex: 1; padding: 10px 6px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text2); font-size: 12px;
+  font-family: 'Noto Sans TC', sans-serif;
+  cursor: pointer; text-align: center;
+  transition: all .2s;
+}
+.diff-btn.active { background: rgba(232,255,71,.15); border-color: var(--accent); color: var(--accent); font-weight: 700; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="app-header">
+  <div class="app-title">FITLOG</div>
+  <div class="header-actions">
+    <button class="icon-btn" onclick="exportData()" title="匯出">📤</button>
+    <button class="icon-btn" onclick="document.getElementById('importFile').click()" title="匯入">📥</button>
+    <input type="file" id="importFile" accept=".json" onchange="importData(event)">
+  </div>
+</header>
+
+<!-- INSTALL BANNER -->
+<div class="install-banner" id="installBanner">
+  <span class="install-banner-text">📱 加入主畫面，隨時快速記錄</span>
+  <button class="install-btn" id="installBtn">安裝 App</button>
+  <button class="close-btn" onclick="document.getElementById('installBanner').classList.remove('show')" style="background:none;border:none;color:var(--text2);font-size:16px;cursor:pointer;">✕</button>
+</div>
+
+<!-- VIEWS -->
+<div class="view active" id="view-equipment">
+  <div class="view-content">
+    <button class="add-equipment-btn" onclick="openAddEquipment()">
+      <span style="font-size:20px">＋</span> 新增健身器材
+    </button>
+    <div class="section-label">我的器材</div>
+    <div id="equipmentList"></div>
+  </div>
+</div>
+
+<div class="view" id="view-history">
+  <div class="view-content">
+    <div class="section-label">訓練紀錄</div>
+    <div id="historyList"></div>
+  </div>
+</div>
+
+<div class="view" id="view-stats">
+  <div class="view-content">
+    <div class="section-label">統計數據</div>
+    <div id="statsContent"></div>
+  </div>
+</div>
+
+<div id="view-detail">
+  <div class="detail-header">
+    <button class="back-btn" onclick="closeDetail()">←</button>
+    <div class="detail-title" id="detailTitle"></div>
+    <div class="detail-actions">
+      <button class="icon-btn" onclick="editEquipment()" title="編輯">✏️</button>
+      <button class="icon-btn" onclick="deleteEquipment()" title="刪除" style="color:var(--danger)">🗑️</button>
+    </div>
+  </div>
+  <div class="detail-scroll">
+    <div class="equip-hero" id="detailHero"></div>
+    <div class="detail-body">
+      <div class="detail-note" id="detailNote"></div>
+      <div class="records-section-title">
+        <div class="section-label" style="margin-bottom:0">訓練記錄 <span id="recordCountLabel"></span></div>
+        <button class="add-record-btn" onclick="openAddRecord()">＋ 記錄</button>
+      </div>
+      <div id="recordsList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" data-view="equipment" onclick="switchView('equipment')">
+    <span class="nav-icon">🏋️</span>器材
+  </button>
+  <button class="nav-btn" data-view="history" onclick="switchView('history')">
+    <span class="nav-icon">📋</span>紀錄
+  </button>
+  <button class="nav-btn" data-view="stats" onclick="switchView('stats')">
+    <span class="nav-icon">📊</span>統計
+  </button>
+</nav>
+
+<!-- ── ADD EQUIPMENT SHEET ── -->
+<div class="overlay" id="addEquipmentOverlay" onclick="handleOverlayClick(event,'addEquipmentOverlay')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title" id="equipSheetTitle">新增器材</div>
+      <button class="close-btn" onclick="closeSheet('addEquipmentOverlay')">✕</button>
+    </div>
+    <div class="sheet-body">
+      <!-- photo -->
+      <div class="form-group">
+        <label class="form-label">器材照片（拍一次即可）</label>
+        <div class="photo-upload-area" id="photoArea" onclick="triggerPhotoUpload()">
+          <div class="upload-hint">
+            <span class="upload-icon">📷</span>
+            <span>點擊拍照或上傳</span>
+          </div>
+          <img id="photoPreview" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover">
+        </div>
+        <div class="photo-actions">
+          <button class="photo-action-btn" onclick="triggerCamera()">📷 相機拍照</button>
+          <button class="photo-action-btn" onclick="triggerPhotoUpload()">🖼 相簿選取</button>
+        </div>
+        <input type="file" id="photoInput" accept="image/*" onchange="handlePhotoSelect(event)">
+        <input type="file" id="cameraInput" accept="image/*" capture="environment" onchange="handlePhotoSelect(event)">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">器材名稱 *</label>
+        <input class="form-input" type="text" id="equipName" placeholder="例：啞鈴、跑步機、槓鈴架…">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">器材類型</label>
+        <div class="type-toggle" id="equipTypeToggle">
+          <button class="type-btn active" onclick="selectType(this,'weight')">重量訓練</button>
+          <button class="type-btn" onclick="selectType(this,'cardio')">有氧器材</button>
+          <button class="type-btn" onclick="selectType(this,'other')">其他</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">備註 / 標註</label>
+        <textarea class="form-input" id="equipNote" placeholder="使用方式、注意事項、肌群…"></textarea>
+      </div>
+
+      <input type="hidden" id="editingEquipId" value="">
+      <button class="submit-btn" onclick="saveEquipment()">儲存器材</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── ADD RECORD SHEET ── -->
+<div class="overlay" id="addRecordOverlay" onclick="handleOverlayClick(event,'addRecordOverlay')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title">新增訓練記錄</div>
+      <button class="close-btn" onclick="closeSheet('addRecordOverlay')">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div id="weightSection">
+        <div class="row-inputs">
+          <div class="form-group">
+            <label class="form-label">重量 (kg)</label>
+            <input class="form-input" type="number" id="recWeight" placeholder="0" step="0.5" min="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">組數</label>
+            <input class="form-input" type="number" id="recSets" placeholder="0" min="1">
+          </div>
+          <div class="form-group">
+            <label class="form-label">次數 / 組</label>
+            <input class="form-input" type="number" id="recReps" placeholder="0" min="1">
+          </div>
+        </div>
+      </div>
+
+      <div id="cardioSection" style="display:none">
+        <div class="row-inputs">
+          <div class="form-group">
+            <label class="form-label">時間 (分鐘)</label>
+            <input class="form-input" type="number" id="recDuration" placeholder="0" min="1">
+          </div>
+          <div class="form-group">
+            <label class="form-label">距離 (km)</label>
+            <input class="form-input" type="number" id="recDistance" placeholder="0" step="0.1" min="0">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">難度 / 強度</label>
+          <div class="difficulty-row" id="difficultyRow">
+            <button class="diff-btn" onclick="selectDiff(this,1)">⭐ 輕鬆</button>
+            <button class="diff-btn" onclick="selectDiff(this,2)">⭐⭐ 普通</button>
+            <button class="diff-btn" onclick="selectDiff(this,3)">⭐⭐⭐ 費力</button>
+            <button class="diff-btn" onclick="selectDiff(this,4)">🔥 極限</button>
+          </div>
+        </div>
+        <div class="row-inputs">
+          <div class="form-group">
+            <label class="form-label">速度 (km/h)</label>
+            <input class="form-input" type="number" id="recSpeed" placeholder="0" step="0.5" min="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">坡度 / 阻力</label>
+            <input class="form-input" type="number" id="recIncline" placeholder="0" step="0.5" min="0">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">備註</label>
+        <input class="form-input" type="text" id="recNote" placeholder="感受、心率、特殊備註…">
+      </div>
+
+      <button class="submit-btn" onclick="saveRecord()">儲存記錄</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ──────────────────────────────────
+// DATA
+// ──────────────────────────────────
+const DB_KEY = 'fitlog_v2';
+let db = loadDB();
+let currentView = 'equipment';
+let currentEquipId = null;
+let selectedEquipType = 'weight';
+let selectedDifficulty = 0;
+let currentPhotoData = null; // base64 of current photo being edited/added
+let deferredInstallPrompt = null;
+
+function loadDB() {
+  try {
+    return JSON.parse(localStorage.getItem(DB_KEY)) || { equipment: [], records: [] };
+  } catch { return { equipment: [], records: [] }; }
+}
+function saveDB() {
+  localStorage.setItem(DB_KEY, JSON.stringify(db));
+}
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+// ──────────────────────────────────
+// VIEWS
+// ──────────────────────────────────
+function switchView(v) {
+  currentView = v;
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('view-detail').classList.remove('active');
+  const el = document.getElementById('view-' + v);
+  if (el) { el.classList.add('active'); }
+  document.querySelector(`.nav-btn[data-view="${v}"]`)?.classList.add('active');
+  if (v === 'equipment') renderEquipment();
+  if (v === 'history') renderHistory();
+  if (v === 'stats') renderStats();
+}
+
+// ──────────────────────────────────
+// EQUIPMENT
+// ──────────────────────────────────
+function renderEquipment() {
+  const list = document.getElementById('equipmentList');
+  if (!db.equipment.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">🏋️</div><div class="empty-title">還沒有器材</div><div class="empty-desc">點擊上方「新增健身器材」<br>開始記錄你的訓練</div></div>`;
+    return;
+  }
+  list.innerHTML = db.equipment.map(eq => {
+    const recs = db.records.filter(r => r.equipId === eq.id);
+    const typeLabel = eq.type === 'cardio' ? '有氧' : eq.type === 'other' ? '其他' : '重量';
+    const imgHtml = eq.photo
+      ? `<div class="equip-img"><img src="${eq.photo}" alt=""></div>`
+      : `<div class="equip-img">${typeIcon(eq.type)}</div>`;
+    return `<div class="equipment-card" onclick="openDetail('${eq.id}')">
+      ${imgHtml}
+      <div class="equip-info">
+        <div class="equip-name">${eq.name}</div>
+        ${eq.note ? `<div class="equip-note">${eq.note}</div>` : ''}
+        <div class="equip-meta">
+          <span class="tag accent">${typeLabel}</span>
+        </div>
+      </div>
+      <div class="record-count">
+        <div class="num">${recs.length}</div>
+        <div class="lbl">記錄</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function typeIcon(type) {
+  return type === 'cardio' ? '🏃' : type === 'other' ? '🤸' : '💪';
+}
+
+function openAddEquipment() {
+  document.getElementById('equipSheetTitle').textContent = '新增器材';
+  document.getElementById('equipName').value = '';
+  document.getElementById('equipNote').value = '';
+  document.getElementById('editingEquipId').value = '';
+  currentPhotoData = null;
+  resetPhotoUI();
+  selectedEquipType = 'weight';
+  document.querySelectorAll('#equipTypeToggle .type-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('#equipTypeToggle .type-btn').classList.add('active');
+  openSheet('addEquipmentOverlay');
+}
+
+function editEquipment() {
+  const eq = db.equipment.find(e => e.id === currentEquipId);
+  if (!eq) return;
+  document.getElementById('equipSheetTitle').textContent = '編輯器材';
+  document.getElementById('equipName').value = eq.name;
+  document.getElementById('equipNote').value = eq.note || '';
+  document.getElementById('editingEquipId').value = eq.id;
+  currentPhotoData = eq.photo || null;
+  selectedEquipType = eq.type || 'weight';
+  // set photo preview
+  if (eq.photo) {
+    document.getElementById('photoPreview').src = eq.photo;
+    document.getElementById('photoPreview').style.display = 'block';
+    document.getElementById('photoArea').classList.add('has-photo');
+  } else {
+    resetPhotoUI();
+  }
+  // set type
+  document.querySelectorAll('#equipTypeToggle .type-btn').forEach(b => {
+    b.classList.toggle('active', b.getAttribute('onclick').includes(`'${eq.type}'`));
+  });
+  openSheet('addEquipmentOverlay');
+}
+
+function saveEquipment() {
+  const name = document.getElementById('equipName').value.trim();
+  if (!name) { alert('請輸入器材名稱'); return; }
+  const editId = document.getElementById('editingEquipId').value;
+  if (editId) {
+    const eq = db.equipment.find(e => e.id === editId);
+    if (eq) { eq.name = name; eq.note = document.getElementById('equipNote').value.trim(); eq.type = selectedEquipType; if (currentPhotoData) eq.photo = currentPhotoData; }
+  } else {
+    db.equipment.push({ id: genId(), name, note: document.getElementById('equipNote').value.trim(), type: selectedEquipType, photo: currentPhotoData, createdAt: Date.now() });
+  }
+  saveDB(); closeSheet('addEquipmentOverlay'); renderEquipment();
+}
+
+function deleteEquipment() {
+  if (!confirm(`確定刪除「${db.equipment.find(e=>e.id===currentEquipId)?.name}」及其所有記錄？`)) return;
+  db.equipment = db.equipment.filter(e => e.id !== currentEquipId);
+  db.records = db.records.filter(r => r.equipId !== currentEquipId);
+  saveDB(); closeDetail(); renderEquipment();
+}
+
+function selectType(btn, type) {
+  selectedEquipType = type;
+  document.querySelectorAll('#equipTypeToggle .type-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ──────────────────────────────────
+// PHOTO
+// ──────────────────────────────────
+function triggerPhotoUpload() { document.getElementById('photoInput').click(); }
+function triggerCamera() { document.getElementById('cameraInput').click(); }
+function resetPhotoUI() {
+  document.getElementById('photoPreview').style.display = 'none';
+  document.getElementById('photoPreview').src = '';
+  document.getElementById('photoArea').classList.remove('has-photo');
+}
+function handlePhotoSelect(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    // Compress image
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const MAX = 800;
+      let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) { if (w > h) { h = h/w*MAX; w = MAX; } else { w = w/h*MAX; h = MAX; } }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      currentPhotoData = canvas.toDataURL('image/jpeg', 0.75);
+      document.getElementById('photoPreview').src = currentPhotoData;
+      document.getElementById('photoPreview').style.display = 'block';
+      document.getElementById('photoArea').classList.add('has-photo');
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+}
+
+// ──────────────────────────────────
+// DETAIL
+// ──────────────────────────────────
+function openDetail(id) {
+  currentEquipId = id;
+  const eq = db.equipment.find(e => e.id === id);
+  if (!eq) return;
+  document.getElementById('detailTitle').textContent = eq.name;
+  document.getElementById('detailHero').innerHTML = eq.photo
+    ? `<img src="${eq.photo}" alt="">`
+    : typeIcon(eq.type);
+  document.getElementById('detailNote').textContent = eq.note || '尚無備註';
+
+  renderRecords(id, eq.type);
+
+  // hide nav views, show detail
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('view-detail').style.display = 'flex';
+  document.getElementById('view-detail').classList.add('active');
+}
+
+function closeDetail() {
+  document.getElementById('view-detail').classList.remove('active');
+  document.getElementById('view-detail').style.display = 'none';
+  switchView(currentView);
+}
+
+function renderRecords(equipId, type) {
+  const recs = db.records.filter(r => r.equipId === equipId).sort((a,b) => b.ts - a.ts);
+  document.getElementById('recordCountLabel').textContent = `(${recs.length}/5)`;
+  if (!recs.length) {
+    document.getElementById('recordsList').innerHTML = `<div class="empty-state" style="padding:30px 0"><div class="empty-icon">📝</div><div class="empty-desc">尚無訓練記錄，點擊「+ 記錄」開始</div></div>`;
+    return;
+  }
+  document.getElementById('recordsList').innerHTML = recs.map(r => {
+    const d = new Date(r.ts);
+    const dateStr = `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+    let chips = '';
+    if (r.weight !== undefined && r.weight !== '') chips += `<div class="stat-chip"><div class="val">${r.weight}</div><div class="unit">公斤</div></div>`;
+    if (r.sets !== undefined && r.sets !== '') chips += `<div class="stat-chip"><div class="val">${r.sets}</div><div class="unit">組</div></div>`;
+    if (r.reps !== undefined && r.reps !== '') chips += `<div class="stat-chip"><div class="val">${r.reps}</div><div class="unit">次/組</div></div>`;
+    if (r.duration !== undefined && r.duration !== '') chips += `<div class="stat-chip"><div class="val">${r.duration}</div><div class="unit">分鐘</div></div>`;
+    if (r.distance !== undefined && r.distance !== '') chips += `<div class="stat-chip"><div class="val">${r.distance}</div><div class="unit">公里</div></div>`;
+    if (r.speed !== undefined && r.speed !== '') chips += `<div class="stat-chip"><div class="val">${r.speed}</div><div class="unit">km/h</div></div>`;
+    if (r.incline !== undefined && r.incline !== '') chips += `<div class="stat-chip"><div class="val">${r.incline}</div><div class="unit">坡/阻</div></div>`;
+    const diffLabels = ['','⭐輕鬆','⭐⭐普通','⭐⭐⭐費力','🔥極限'];
+    const diffStr = r.difficulty ? diffLabels[r.difficulty] : '';
+    return `<div class="record-item">
+      <div class="rec-date">${dateStr}${diffStr ? ' · ' + diffStr : ''}</div>
+      <div class="record-stats">${chips}</div>
+      ${r.note ? `<div style="font-size:12px;color:var(--text2);margin-top:8px">${r.note}</div>` : ''}
+      <button class="del-record-btn" onclick="deleteRecord('${r.id}')">✕</button>
+    </div>`;
+  }).join('');
+}
+
+// ──────────────────────────────────
+// RECORDS
+// ──────────────────────────────────
+function openAddRecord() {
+  const eq = db.equipment.find(e => e.id === currentEquipId);
+  const recs = db.records.filter(r => r.equipId === currentEquipId);
+  if (recs.length >= 5) {
+    if (!confirm('已有 5 筆記錄（上限）。確定要刪除最舊的那筆並新增？')) return;
+    const oldest = recs.sort((a,b) => a.ts - b.ts)[0];
+    db.records = db.records.filter(r => r.id !== oldest.id);
+    saveDB();
+  }
+  // reset form
+  ['recWeight','recSets','recReps','recDuration','recDistance','recSpeed','recIncline','recNote'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  selectedDifficulty = 0;
+  document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+
+  const isCardio = eq?.type === 'cardio';
+  document.getElementById('weightSection').style.display = isCardio ? 'none' : 'block';
+  document.getElementById('cardioSection').style.display = isCardio ? 'block' : 'none';
+  openSheet('addRecordOverlay');
+}
+
+function saveRecord() {
+  const eq = db.equipment.find(e => e.id === currentEquipId);
+  const isCardio = eq?.type === 'cardio';
+  const rec = { id: genId(), equipId: currentEquipId, ts: Date.now() };
+  if (isCardio) {
+    const dur = document.getElementById('recDuration').value;
+    const dist = document.getElementById('recDistance').value;
+    const spd = document.getElementById('recSpeed').value;
+    const inc = document.getElementById('recIncline').value;
+    if (!dur && !dist) { alert('請填寫時間或距離'); return; }
+    if (dur) rec.duration = parseFloat(dur);
+    if (dist) rec.distance = parseFloat(dist);
+    if (spd) rec.speed = parseFloat(spd);
+    if (inc) rec.incline = parseFloat(inc);
+    if (selectedDifficulty) rec.difficulty = selectedDifficulty;
+  } else {
+    const w = document.getElementById('recWeight').value;
+    const s = document.getElementById('recSets').value;
+    const r = document.getElementById('recReps').value;
+    if (!w && !s && !r) { alert('請填寫至少一項數據'); return; }
+    if (w) rec.weight = parseFloat(w);
+    if (s) rec.sets = parseInt(s);
+    if (r) rec.reps = parseInt(r);
+  }
+  const note = document.getElementById('recNote').value.trim();
+  if (note) rec.note = note;
+
+  db.records.push(rec);
+  saveDB();
+  closeSheet('addRecordOverlay');
+  renderRecords(currentEquipId, eq?.type);
+}
+
+function deleteRecord(id) {
+  if (!confirm('確定刪除這筆記錄？')) return;
+  db.records = db.records.filter(r => r.id !== id);
+  saveDB();
+  const eq = db.equipment.find(e => e.id === currentEquipId);
+  renderRecords(currentEquipId, eq?.type);
+}
+
+function selectDiff(btn, level) {
+  selectedDifficulty = level;
+  document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ──────────────────────────────────
+// HISTORY
+// ──────────────────────────────────
+function renderHistory() {
+  const sorted = [...db.records].sort((a,b) => b.ts - a.ts);
+  if (!sorted.length) {
+    document.getElementById('historyList').innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">尚無訓練紀錄</div><div class="empty-desc">從器材頁面新增記錄後<br>會在這裡顯示</div></div>`;
+    return;
+  }
+  // Group by date
+  const groups = {};
+  sorted.forEach(r => {
+    const d = new Date(r.ts);
+    const key = `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(r);
+  });
+  document.getElementById('historyList').innerHTML = Object.entries(groups).map(([date, recs]) => {
+    const items = recs.map(r => {
+      const eq = db.equipment.find(e => e.id === r.equipId);
+      if (!eq) return '';
+      const time = new Date(r.ts);
+      const timeStr = `${time.getHours().toString().padStart(2,'0')}:${time.getMinutes().toString().padStart(2,'0')}`;
+      const iconHtml = eq.photo
+        ? `<div class="history-equip-icon"><img src="${eq.photo}" alt=""></div>`
+        : `<div class="history-equip-icon">${typeIcon(eq.type)}</div>`;
+      let stats = [];
+      if (r.weight) stats.push(`${r.weight}kg`);
+      if (r.sets) stats.push(`${r.sets}組`);
+      if (r.reps) stats.push(`${r.reps}次`);
+      if (r.duration) stats.push(`${r.duration}分`);
+      if (r.distance) stats.push(`${r.distance}km`);
+      return `<div class="history-item">
+        ${iconHtml}
+        <div class="history-info">
+          <div class="history-name">${eq.name}</div>
+          <div class="history-stats">${stats.join(' · ') || '已記錄'}</div>
+        </div>
+        <div class="history-time">${timeStr}</div>
+      </div>`;
+    }).join('');
+    return `<div class="history-day"><div class="history-date-label">${date}</div>${items}</div>`;
+  }).join('');
+}
+
+// ──────────────────────────────────
+// STATS
+// ──────────────────────────────────
+function renderStats() {
+  const totalRecs = db.records.length;
+  const totalEquip = db.equipment.length;
+  const days = new Set(db.records.map(r => new Date(r.ts).toDateString())).size;
+  const totalVolume = db.records.reduce((s,r) => s + (r.weight||0)*(r.sets||1)*(r.reps||1), 0);
+
+  // equipment usage count
+  const usage = {};
+  db.records.forEach(r => { usage[r.equipId] = (usage[r.equipId]||0)+1; });
+  const topEquip = db.equipment
+    .map(e => ({ name: e.name, count: usage[e.id]||0 }))
+    .sort((a,b) => b.count - a.count).slice(0,6);
+  const maxCount = topEquip[0]?.count || 1;
+
+  document.getElementById('statsContent').innerHTML = `
+    <div class="stats-hero">
+      <div class="stat-block"><div class="big">${totalEquip}</div><div class="lbl">器材數</div></div>
+      <div class="stat-block"><div class="big">${totalRecs}</div><div class="lbl">總記錄</div></div>
+      <div class="stat-block"><div class="big">${days}</div><div class="lbl">訓練天數</div></div>
+      ${totalVolume > 0 ? `<div class="stat-block"><div class="big">${(totalVolume/1000).toFixed(1)}T</div><div class="lbl">總重量</div></div>` : ''}
+    </div>
+    ${topEquip.length ? `
+    <div class="section-label">器材使用頻率</div>
+    ${topEquip.map(e => `
+    <div class="chart-bar-row">
+      <div class="chart-bar-label">${e.name}</div>
+      <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${Math.round(e.count/maxCount*100)}%"></div></div>
+      <div class="chart-bar-val">${e.count}</div>
+    </div>`).join('')}` : ''}
+    ${!totalRecs ? '<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-title">暫無數據</div><div class="empty-desc">開始訓練後這裡會顯示統計資料</div></div>' : ''}
+  `;
+}
+
+// ──────────────────────────────────
+// EXPORT / IMPORT
+// ──────────────────────────────────
+function exportData() {
+  const data = JSON.stringify(db, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `fitlog_${new Date().toISOString().slice(0,10)}.json`;
+  a.click(); URL.revokeObjectURL(url);
+}
+function importData(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const parsed = JSON.parse(ev.target.result);
+      if (!parsed.equipment || !parsed.records) throw new Error('格式錯誤');
+      if (!confirm(`匯入將覆蓋現有資料（${parsed.equipment.length} 個器材，${parsed.records.length} 筆記錄）。確定？`)) return;
+      db = parsed; saveDB(); renderEquipment();
+      alert('✅ 匯入成功！');
+    } catch { alert('❌ 檔案格式錯誤，請選擇正確的 FitLog 備份檔案'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// ──────────────────────────────────
+// SHEET HELPERS
+// ──────────────────────────────────
+function openSheet(id) { document.getElementById(id).classList.add('open'); }
+function closeSheet(id) { document.getElementById(id).classList.remove('open'); }
+function handleOverlayClick(e, id) { if (e.target === e.currentTarget) closeSheet(id); }
+
+// ──────────────────────────────────
+// PWA INSTALL
+// ──────────────────────────────────
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); deferredInstallPrompt = e;
+  document.getElementById('installBanner').classList.add('show');
+});
+document.getElementById('installBtn').addEventListener('click', () => {
+  if (!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  deferredInstallPrompt.userChoice.then(() => {
+    deferredInstallPrompt = null;
+    document.getElementById('installBanner').classList.remove('show');
+  });
+});
+
+// ──────────────────────────────────
+// INIT
+// ──────────────────────────────────
+renderEquipment();
+</script>
+<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("./sw.js")}</script>
+</body>
+</html>
